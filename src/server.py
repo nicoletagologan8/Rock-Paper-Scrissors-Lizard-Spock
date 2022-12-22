@@ -6,7 +6,6 @@ from src.option import Option
 
 OPTIONS = ['Rock', 'Paper', 'Scissors', 'Lizard', 'Spock']
 DEFAULT_SIZE = 256
-CLIENT_COUNT = 0
 
 
 def generate_server_option():
@@ -21,19 +20,22 @@ def game_result(client_message):
 
 
 def handle_game(client_socket):
-    global CLIENT_COUNT
     while True:
-        client_message = client_socket.recv(DEFAULT_SIZE).decode()
-        game_status, message = game_result(client_message)
-        if game_status == 1:
-            client_socket.send(f"{message}You Win!\n".encode())
-        elif game_status == -1:
-            client_socket.send(f"{message}Draw!\n".encode())
-        elif game_status == 0:
-            client_socket.send(f"{message}You Lose!\n".encode())
+        try:
+            client_message = client_socket.recv(DEFAULT_SIZE).decode()
+            game_status, message = game_result(client_message)
+            if game_status == 1:
+                client_socket.send(f"{message}You Win!\n".encode())
+            elif game_status == -1:
+                client_socket.send(f"{message}Draw!\n".encode())
+            elif game_status == 0:
+                client_socket.send(f"{message}You Lose!\n".encode())
+                break
+        except Exception as _:
+            client_socket.close()
             break
+
     client_socket.close()
-    CLIENT_COUNT -= 1
 
 
 def main():
@@ -42,17 +44,16 @@ def main():
     port = 10000
     server_socket.bind((host, port))
     server_socket.listen()
-    global CLIENT_COUNT
     while True:
-        print(CLIENT_COUNT)
-        if CLIENT_COUNT < 3:
+        if len(threading.enumerate()) < 4:  # including main thread
             client, addr = server_socket.accept()
-            CLIENT_COUNT += 1
             print('Connected to ', addr)
-            client.send(f'Hello new player {CLIENT_COUNT}'.encode())
+            client.send(f'Hello new player\n'
+                        f'Welcome to Rock-Paper-Scissors-Lizard-Spock\n'
+                        .encode())
             game_thread = threading.Thread(target=handle_game, args=(client,))
             game_thread.start()
-
+            print(f"Client count = {len(threading.enumerate()) - 1}")
 
 
 if __name__ == "__main__":

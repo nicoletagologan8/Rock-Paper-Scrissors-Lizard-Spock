@@ -29,6 +29,10 @@ def select_option():
             return str(int(option) - 1)
 
 
+def connection_error(server_message):
+    return 'connection error: timed out' in server_message
+
+
 def main():
     port = 10000
     host_ip = '127.0.0.1'
@@ -38,7 +42,7 @@ def main():
         while True:
             server_message = connection.recv(DEFAULT_SIZE).decode()
             print(server_message)
-            if end_game(server_message):
+            if end_game(server_message) or connection_error(server_message):
                 sys.exit(0)
             option = select_option()
             connection.send(option.encode())
