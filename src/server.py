@@ -1,3 +1,4 @@
+import argparse
 import random
 import socket
 import threading
@@ -39,7 +40,23 @@ def handle_game(client_socket):
 
 
 def main():
-    server_socket = socket.socket()
+    """
+    The server has two communication protocols
+    By default is using TCP protocol -> see line 57, socket.SOCK_STREAM
+    Alternatively, UDP protocol can be used by adding --udp option when
+    running server.py -> see line 55, socket.SOCK_DGRAM
+    """
+    parser = argparse.ArgumentParser(
+        prog='Python Project',
+        description='Play a game of Rock-Paper-Scissors-Lizard-Spock')
+    parser.add_argument('--udp', action='store_true')
+    args = parser.parse_args()
+
+    if args.udp:
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    else:
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
+
     host = '127.0.0.1'
     port = 10000
     server_socket.bind((host, port))
